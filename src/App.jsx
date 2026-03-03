@@ -17,10 +17,10 @@ function saveUsers(data) {
 }
 
 const defaultColors = {
-  rowColor: "rgba(115,137,174,0.18)", // Glaucous خفيف
-  colColor: "rgba(65,103,136,0.9)",   // Baltic Blue
-  checkColor: "#81D2C7",              // Pearl Aqua
-  crossColor: "#E0E0E2"               // Alabaster Grey
+  rowColor: "rgba(115,137,174,0.18)",
+  colColor: "#416788",
+  checkColor: "#81D2C7",
+  crossColor: "#E0E0E2"
 };
 
 export default function App() {
@@ -42,7 +42,6 @@ export default function App() {
   const [showColors, setShowColors] = useState(false);
   const [history, setHistory] = useState([]);
 
-  // push to history (آخر 20 حالة)
   const pushHistory = (prev) => {
     setHistory((h) => {
       const copy = [...h, prev];
@@ -61,7 +60,6 @@ export default function App() {
     });
   };
 
-  // Ctrl + Z
   useEffect(() => {
     if (!savedUser) return;
     const handler = (e) => {
@@ -74,7 +72,6 @@ export default function App() {
     return () => window.removeEventListener("keydown", handler);
   }, [savedUser, history]);
 
-  // حفظ تلقائي
   useEffect(() => {
     if (!savedUser) return;
     const users = loadUsers();
@@ -110,7 +107,15 @@ export default function App() {
     setTableData((prev) => {
       pushHistory(prev);
       const copy = prev.map((row) => [...row]);
-      copy[r][c] = type === "check" ? "✔️" : "❌"; // واحدة فقط
+
+      if (type === "check") {
+        copy[r][c] = "✔️";
+      }
+
+      if (type === "cross") {
+        copy[r][c] = "❌";
+      }
+
       return copy;
     });
   };
@@ -182,15 +187,14 @@ export default function App() {
       setTableData(existing.tableData ?? []);
 
       const colors = existing.colors || defaultColors;
-      setRowColor(colors.rowColor || defaultColors.rowColor);
-      setColColor(colors.colColor || defaultColors.colColor);
-      setCheckColor(colors.checkColor || defaultColors.checkColor);
-      setCrossColor(colors.crossColor || defaultColors.crossColor);
+      setRowColor(colors.rowColor);
+      setColColor(colors.colColor);
+      setCheckColor(colors.checkColor);
+      setCrossColor(colors.crossColor);
 
       return;
     }
 
-    // مستخدم جديد
     users[clean] = {
       pin,
       rows,
@@ -389,17 +393,27 @@ export default function App() {
                                   handleMark(rIndex, cIndex, "check")
                                 }
                                 className="chip-btn chip-check"
+                                style={{
+                                  borderColor: checkColor,
+                                  color: checkColor
+                                }}
                               >
                                 ✔️
                               </button>
+
                               <button
                                 onClick={() =>
                                   handleMark(rIndex, cIndex, "cross")
                                 }
                                 className="chip-btn chip-cross"
+                                style={{
+                                  borderColor: crossColor,
+                                  color: crossColor
+                                }}
                               >
                                 ❌
                               </button>
+
                               <span
                                 className="mark-value"
                                 style={{
@@ -443,11 +457,7 @@ export default function App() {
                     style={{
                       backgroundColor: c,
                       outline:
-                        rowColor.startsWith("#") && rowColor === c
-                          ? "2px solid #fff"
-                          : !rowColor.startsWith("#") && c === "#7389AE"
-                          ? "2px solid #fff"
-                          : "none"
+                        rowColor.includes(c) ? "2px solid #fff" : "none"
                     }}
                     onClick={() =>
                       setRowColor(
@@ -472,7 +482,7 @@ export default function App() {
                     className="color-dot"
                     style={{
                       backgroundColor: c,
-                      outline: colColor.includes(c) ? "2px solid #fff" : "none"
+                      outline: colColor === c ? "2px solid #fff" : "none"
                     }}
                     onClick={() => setColColor(c)}
                   />
