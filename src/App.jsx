@@ -111,7 +111,8 @@ export default function App() {
               border: "1px solid #333",
               background: "#0b0b12",
               color: "#f5f5f5",
-              marginBottom: "12px"
+              marginBottom: "12px",
+              fontSize: 16
             }}
           />
 
@@ -140,7 +141,7 @@ export default function App() {
               background:
                 "linear-gradient(135deg, #22c55e 0%, #16a34a 40%, #15803d 100%)",
               color: "#f5f5f5",
-              fontSize: "16px",
+              fontSize: 16,
               fontWeight: 600,
               cursor: "pointer"
             }}
@@ -165,9 +166,9 @@ export default function App() {
         }}
       >
         <div>
-          <h2 style={{ margin: 0 }}>مرحباً، {savedUser}</h2>
+          <h2 style={{ margin: 0, fontSize: 22 }}>مرحباً، {savedUser}</h2>
           <p style={{ margin: 0, opacity: 0.7, fontSize: 14 }}>
-            هذا جدولك المرن — عدّلي الصفوف والأعمدة كما تريدين.
+            هذا جدولك للقرآن — عدّلي الصفوف والأعمدة كما تريدين.
           </p>
         </div>
       </header>
@@ -193,13 +194,14 @@ export default function App() {
             value={rows}
             onChange={(e) => setRows(Number(e.target.value))}
             style={{
-              width: 80,
+              width: 90,
               padding: "6px 8px",
               borderRadius: 10,
               border: "1px solid #333",
               background: "#050509",
               color: "#f5f5f5",
-              marginTop: 4
+              marginTop: 4,
+              fontSize: 14
             }}
           />
         </div>
@@ -212,13 +214,14 @@ export default function App() {
             value={cols}
             onChange={(e) => setCols(Number(e.target.value))}
             style={{
-              width: 80,
+              width: 90,
               padding: "6px 8px",
               borderRadius: 10,
               border: "1px solid #333",
               background: "#050509",
               color: "#f5f5f5",
-              marginTop: 4
+              marginTop: 4,
+              fontSize: 14
             }}
           />
         </div>
@@ -233,13 +236,14 @@ export default function App() {
             value={customCols}
             onChange={(e) => setCustomCols(Number(e.target.value))}
             style={{
-              width: 80,
+              width: 90,
               padding: "6px 8px",
               borderRadius: 10,
               border: "1px solid #333",
               background: "#050509",
               color: "#f5f5f5",
-              marginTop: 4
+              marginTop: 4,
+              fontSize: 14
             }}
           />
         </div>
@@ -247,7 +251,7 @@ export default function App() {
         <button
           onClick={handleApplySettings}
           style={{
-            padding: "8px 16px",
+            padding: "8px 18px",
             borderRadius: 999,
             border: "none",
             background:
@@ -271,149 +275,201 @@ export default function App() {
           overflowX: "auto"
         }}
       >
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            minWidth: "600px"
-          }}
-        >
-          <thead>
-            <tr>
-              <th
-                style={{
-                  borderBottom: "1px solid #333",
-                  padding: 8,
-                  textAlign: "center",
-                  fontSize: 13,
-                  opacity: 0.8
-                }}
-              >
-                #
-              </th>
-              {Array.from({ length: cols }).map((_, i) => (
+        <div style={{ minWidth: "700px" }}>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              tableLayout: "fixed",
+              fontSize: 14
+            }}
+          >
+            <thead>
+              <tr>
                 <th
-                  key={`col-${i}`}
                   style={{
                     borderBottom: "1px solid #333",
+                    borderRight: "1px solid #333",
                     padding: 8,
                     textAlign: "center",
                     fontSize: 13,
-                    opacity: 0.8
+                    opacity: 0.8,
+                    background: "#111827",
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 1
                   }}
                 >
-                  عمود {i + 1}
+                  #
                 </th>
-              ))}
-              {Array.from({ length: customCols }).map((_, i) => (
-                <th
-                  key={`ccol-${i}`}
-                  style={{
-                    borderBottom: "1px solid #333",
-                    padding: 8,
-                    textAlign: "center",
-                    fontSize: 13,
-                    opacity: 0.8
-                  }}
-                >
-                  مخصص {i + 1}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {tableData.map((row, rIndex) => (
-              <tr key={rIndex}>
-                <td
-                  style={{
-                    borderBottom: "1px solid #222",
-                    padding: 6,
-                    textAlign: "center",
-                    fontSize: 13,
-                    opacity: 0.7
-                  }}
-                >
-                  {rIndex + 1}
-                </td>
-                {row.map((cell, cIndex) => {
-                  const isCustom = cIndex >= cols;
-                  return (
+                {Array.from({ length: cols }).map((_, i) => (
+                  <th
+                    key={`col-${i}`}
+                    style={{
+                      borderBottom: "1px solid #333",
+                      borderRight:
+                        i === cols - 1 && customCols === 0
+                          ? "1px solid #333"
+                          : "1px solid #333",
+                      padding: 8,
+                      textAlign: "center",
+                      fontSize: 13,
+                      opacity: 0.8,
+                      background: "#111827",
+                      position: "sticky",
+                      top: 0,
+                      zIndex: 1
+                    }}
+                  >
+                    عمود {i + 1}
+                  </th>
+                ))}
+                {Array.from({ length: customCols }).map((_, i) => (
+                  <th
+                    key={`ccol-${i}`}
+                    style={{
+                      borderBottom: "1px solid #333",
+                      borderRight:
+                        i === customCols - 1 ? "1px solid #333" : "1px solid #333",
+                      padding: 8,
+                      textAlign: "center",
+                      fontSize: 13,
+                      opacity: 0.8,
+                      background: "#111827",
+                      position: "sticky",
+                      top: 0,
+                      zIndex: 1
+                    }}
+                  >
+                    مخصص {i + 1}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {tableData.map((row, rIndex) => {
+                const isEven = rIndex % 2 === 1;
+                return (
+                  <tr
+                    key={rIndex}
+                    style={{
+                      backgroundColor: isEven ? "#020617" : "#020617cc"
+                    }}
+                  >
                     <td
-                      key={cIndex}
                       style={{
                         borderBottom: "1px solid #222",
-                        padding: 4,
-                        textAlign: "center"
+                        borderRight: "1px solid #333",
+                        padding: 6,
+                        textAlign: "center",
+                        fontSize: 13,
+                        opacity: 0.8
                       }}
                     >
-                      {!isCustom ? (
-                        <input
-                          type="text"
-                          value={cell}
-                          onChange={(e) =>
-                            handleCellChange(rIndex, cIndex, e.target.value)
-                          }
+                      {rIndex + 1}
+                    </td>
+                    {row.map((cell, cIndex) => {
+                      const isCustom = cIndex >= cols;
+                      const isCheck = cell === "✔️";
+                      const isCross = cell === "❌";
+
+                      return (
+                        <td
+                          key={cIndex}
                           style={{
-                            width: "100%",
-                            padding: "4px 6px",
-                            borderRadius: 8,
-                            border: "1px solid #333",
-                            background: "#050509",
-                            color: "#f5f5f5",
-                            fontSize: 13
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: 4,
-                            justifyContent: "center",
-                            alignItems: "center"
+                            borderBottom: "1px solid #222",
+                            borderRight: "1px solid #333",
+                            padding: 4,
+                            textAlign: "center",
+                            verticalAlign: "middle"
                           }}
                         >
-                          <button
-                            onClick={() =>
-                              handleMark(rIndex, cIndex, "check")
-                            }
-                            style={{
-                              padding: "2px 6px",
-                              borderRadius: 999,
-                              border: "none",
-                              background: "#16a34a",
-                              color: "#f5f5f5",
-                              fontSize: 12,
-                              cursor: "pointer"
-                            }}
-                          >
-                            ✔️
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleMark(rIndex, cIndex, "cross")
-                            }
-                            style={{
-                              padding: "2px 6px",
-                              borderRadius: 999,
-                              border: "none",
-                              background: "#dc2626",
-                              color: "#f5f5f5",
-                              fontSize: 12,
-                              cursor: "pointer"
-                            }}
-                          >
-                            ❌
-                          </button>
-                          <span style={{ fontSize: 14 }}>{cell}</span>
-                        </div>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                          {!isCustom ? (
+                            <input
+                              type="text"
+                              value={cell}
+                              onChange={(e) =>
+                                handleCellChange(
+                                  rIndex,
+                                  cIndex,
+                                  e.target.value
+                                )
+                              }
+                              style={{
+                                width: "100%",
+                                padding: "4px 6px",
+                                borderRadius: 8,
+                                border: "1px solid #333",
+                                background: "#020617",
+                                color: "#f5f5f5",
+                                fontSize: 13
+                              }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: 4,
+                                justifyContent: "center",
+                                alignItems: "center"
+                              }}
+                            >
+                              <button
+                                onClick={() =>
+                                  handleMark(rIndex, cIndex, "check")
+                                }
+                                style={{
+                                  padding: "2px 6px",
+                                  borderRadius: 999,
+                                  border: "none",
+                                  background: "#16a34a",
+                                  color: "#f5f5f5",
+                                  fontSize: 12,
+                                  cursor: "pointer"
+                                }}
+                              >
+                                ✔️
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleMark(rIndex, cIndex, "cross")
+                                }
+                                style={{
+                                  padding: "2px 6px",
+                                  borderRadius: 999,
+                                  border: "none",
+                                  background: "#dc2626",
+                                  color: "#f5f5f5",
+                                  fontSize: 12,
+                                  cursor: "pointer"
+                                }}
+                              >
+                                ❌
+                              </button>
+                              <span
+                                style={{
+                                  fontSize: 16,
+                                  fontWeight: 600,
+                                  color: isCheck
+                                    ? "#22c55e"
+                                    : isCross
+                                    ? "#f97373"
+                                    : "#e5e7eb"
+                                }}
+                              >
+                                {cell}
+                              </span>
+                            </div>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   );
