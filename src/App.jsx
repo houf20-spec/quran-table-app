@@ -31,9 +31,9 @@ export default function App() {
   useEffect(() => {
     if (!savedUser) return;
     const users = loadUsersFromStorage();
-    const user = users[savedUser] || {};
+    const existing = users[savedUser] || {};
     users[savedUser] = {
-      ...user,
+      ...existing,
       rows,
       cols,
       customCols,
@@ -43,9 +43,9 @@ export default function App() {
   }, [savedUser, rows, cols, customCols, tableData]);
 
   const initTable = (r, c, cc) => {
-    const totalCols = c + cc;
+    const total = c + cc;
     const newTable = Array.from({ length: r }, () =>
-      Array.from({ length: totalCols }, () => "")
+      Array.from({ length: total }, () => "")
     );
     setTableData(newTable);
   };
@@ -66,14 +66,55 @@ export default function App() {
     });
   };
 
+  // تعديل الإعدادات بدون مسح البيانات
   const handleApplySettings = () => {
-    const r = Math.max(1, Math.min(60, rows || 1));
-    const c = Math.max(1, cols || 1);
-    const cc = Math.max(0, customCols || 0);
-    setRows(r);
-    setCols(c);
-    setCustomCols(cc);
-    initTable(r, c, cc);
+    const newRows = Math.max(1, Math.min(60, rows || 1));
+    const newCols = Math.max(1, cols || 1);
+    const newCustom = Math.max(0, customCols || 0);
+
+    const totalOld = tableData[0]?.length || 0;
+    const totalNew = newCols + newCustom;
+
+    setRows(newRows);
+    setCols(newCols);
+    setCustomCols(newCustom);
+
+    setTableData((prev) => {
+      let updated = [...prev];
+
+      // إضافة صفوف جديدة
+      if (newRows > prev.length) {
+        for (let i = prev.length; i < newRows; i++) {
+          updated.push(Array.from({ length: totalNew }, () => ""));
+        }
+      }
+
+      // حذف صفوف زائدة
+      if (newRows < prev.length) {
+        updated = updated.slice(0, newRows);
+      }
+
+      // تعديل الأعمدة
+      updated = updated.map((row) => {
+        let r = [...row];
+
+        // إضافة أعمدة جديدة
+        if (totalNew > totalOld) {
+          for (let i = totalOld; i < totalNew; i++) {
+            r.push("");
+          }
+        }
+
+        // حذف أعمدة زائدة
+        if (totalNew < totalOld) {
+          r = r.slice(0, totalNew);
+        }
+
+        return r;
+      });
+
+      return updated;
+    });
   };
 
   const handleAuth = () => {
@@ -99,7 +140,6 @@ export default function App() {
         setError("الرمز السري غير صحيح");
         return;
       }
-      // تحميل بياناته
       setSavedUser(cleanName);
       setRows(existing.rows || 10);
       setCols(existing.cols || 4);
