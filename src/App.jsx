@@ -1,7 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+const STORAGE_KEY = "quran-table-users";
+
+function loadUsersFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+function saveUsersToStorage(users) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+}
 
 export default function App() {
   const [username, setUsername] = useState("");
+  const [pin, setPin] = useState("");
   const [savedUser, setSavedUser] = useState(null);
   const [error, setError] = useState("");
 
@@ -10,33 +27,20 @@ export default function App() {
   const [customCols, setCustomCols] = useState(1);
   const [tableData, setTableData] = useState([]);
 
-  const handleLogin = async () => {
-    setError("");
-
-    if (!username.trim()) {
-      setError("الرجاء إدخال اسم مستخدم");
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/check-name", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: username.trim() })
-      });
-
-      const data = await res.json();
-
-      if (!data.ok) {
-        setError(data.message || "حدث خطأ غير متوقع");
-      } else {
-        setSavedUser(username.trim());
-        initTable(rows, cols, customCols);
-      }
-    } catch (e) {
-      setError("تعذر الاتصال بالخادم، حاول لاحقاً");
-    }
-  };
+  // حفظ تلقائي عند تغيير الجدول أو الإعدادات
+  useEffect(() => {
+    if (!savedUser) return;
+    const users = loadUsersFromStorage();
+    const user = users[savedUser] || {};
+    users[savedUser] = {
+      ...user,
+      rows,
+      cols,
+      customCols,
+      tableData
+    };
+    saveUsersToStorage(users);
+  }, [savedUser, rows, cols, customCols, tableData]);
 
   const initTable = (r, c, cc) => {
     const totalCols = c + cc;
@@ -72,6 +76,54 @@ export default function App() {
     initTable(r, c, cc);
   };
 
+  const handleAuth = () => {
+    setError("");
+
+    const cleanName = username.trim();
+    if (!cleanName) {
+      setError("الرجاء إدخال اسم مستخدم");
+      return;
+    }
+
+    if (!/^\d{4}$/.test(pin)) {
+      setError("الرمز السري يجب أن يكون ٤ أرقام");
+      return;
+    }
+
+    const users = loadUsersFromStorage();
+    const existing = users[cleanName];
+
+    // مستخدم موجود → تسجيل دخول
+    if (existing) {
+      if (existing.pin !== pin) {
+        setError("الرمز السري غير صحيح");
+        return;
+      }
+      // تحميل بياناته
+      setSavedUser(cleanName);
+      setRows(existing.rows || 10);
+      setCols(existing.cols || 4);
+      setCustomCols(existing.customCols || 1);
+      setTableData(existing.tableData || []);
+      return;
+    }
+
+    // مستخدم جديد → تسجيل جديد
+    users[cleanName] = {
+      pin,
+      rows,
+      cols,
+      customCols,
+      tableData: Array.from({ length: rows }, () =>
+        Array.from({ length: cols + customCols }, () => "")
+      )
+    };
+    saveUsersToStorage(users);
+
+    setSavedUser(cleanName);
+    initTable(rows, cols, customCols);
+  };
+
   if (!savedUser) {
     return (
       <div
@@ -96,12 +148,14 @@ export default function App() {
             quran-table-app
           </h1>
           <p style={{ textAlign: "center", opacity: 0.8, marginBottom: 16 }}>
-            أدخل اسم مستخدم جديد (غير مستخدم من قبل).
+            أدخلي اسم المستخدم والرمز السري (٤ أرقام).
+            <br />
+            إذا كان الاسم جديداً سيتم تسجيله، وإذا كان موجوداً سيتم تسجيل الدخول.
           </p>
 
           <input
             type="text"
-            placeholder="مثال: نوف"
+            placeholder="اسم المستخدم (مثال: نوف)"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             style={{
@@ -111,8 +165,32 @@ export default function App() {
               border: "1px solid #333",
               background: "#0b0b12",
               color: "#f5f5f5",
-              marginBottom: "12px",
+              marginBottom: "10px",
               fontSize: 16
+            }}
+          />
+
+          <input
+            type="password"
+            placeholder="الرمز السري (٤ أرقام)"
+            value={pin}
+            maxLength={4}
+            onChange={(e) => {
+              const v = e.target.value.replace(/\D/g, "").slice(0, 4);
+              setPin(v);
+            }}
+            style={{
+              width: "100%",
+              padding: "10px 14px",
+              borderRadius: "12px",
+              border: "1px solid #333",
+              background: "#0b0b12",
+              color: "#f5f5f5",
+              marginBottom: "12px",
+              fontSize: 16,
+              direction: "ltr",
+              textAlign: "center",
+              letterSpacing: "4px"
             }}
           />
 
@@ -132,7 +210,7 @@ export default function App() {
           )}
 
           <button
-            onClick={handleLogin}
+            onClick={handleAuth}
             style={{
               width: "100%",
               padding: "10px 14px",
@@ -146,7 +224,7 @@ export default function App() {
               cursor: "pointer"
             }}
           >
-            دخول
+            دخول / تسجيل
           </button>
         </div>
       </div>
@@ -171,6 +249,23 @@ export default function App() {
             هذا جدولك للقرآن — عدّلي الصفوف والأعمدة كما تريدين.
           </p>
         </div>
+        <button
+          onClick={() => {
+            setSavedUser(null);
+            setPin("");
+          }}
+          style={{
+            padding: "6px 12px",
+            borderRadius: 999,
+            border: "1px solid #4b5563",
+            background: "transparent",
+            color: "#e5e7eb",
+            fontSize: 13,
+            cursor: "pointer"
+          }}
+        >
+          تسجيل خروج
+        </button>
       </header>
 
       <section
@@ -307,10 +402,7 @@ export default function App() {
                     key={`col-${i}`}
                     style={{
                       borderBottom: "1px solid #333",
-                      borderRight:
-                        i === cols - 1 && customCols === 0
-                          ? "1px solid #333"
-                          : "1px solid #333",
+                      borderRight: "1px solid #333",
                       padding: 8,
                       textAlign: "center",
                       fontSize: 13,
@@ -329,8 +421,7 @@ export default function App() {
                     key={`ccol-${i}`}
                     style={{
                       borderBottom: "1px solid #333",
-                      borderRight:
-                        i === customCols - 1 ? "1px solid #333" : "1px solid #333",
+                      borderRight: "1px solid #333",
                       padding: 8,
                       textAlign: "center",
                       fontSize: 13,
